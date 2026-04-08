@@ -12,7 +12,6 @@ var userInfo = uri.UserInfo.Split(':');
 
 var connectionString = $"Host={uri.Host};Port=5432;Database={uri.AbsolutePath.TrimStart('/')};Username={userInfo[0]};Password={userInfo[1]};";
 
-Console.WriteLine(connectionString);
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
