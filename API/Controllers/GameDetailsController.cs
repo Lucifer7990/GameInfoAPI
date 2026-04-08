@@ -8,7 +8,7 @@ public class GameDetailsController : ControllerBase
 {
     private static readonly string[] Games =
     [
-        "Roblox", "Minecraft","Grand Theft Auto V"
+        "Roblox", "Minecraft","Grand Theft Auto V","Mario"
     ];
 
     [HttpGet]
