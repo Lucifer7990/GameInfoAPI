@@ -7,11 +7,6 @@ namespace API.Controllers;
 [Route("[controller]")]
 public class GameDetailsController(AppDbContext dbContext) : ControllerBase
 {
-    private static readonly string[] Games =
-    [
-        "Roblox", "Minecraft","Grand Theft Auto V","Mario"
-    ];
-
     [HttpGet]
     public async Task<IEnumerable<GameDetail>> Get()
     {
@@ -19,7 +14,7 @@ public class GameDetailsController(AppDbContext dbContext) : ControllerBase
         return result;
     }
 
-    [HttpPost("seed")]
+    [HttpGet("seed")]
     public async Task<IActionResult> SeedGames()
     {
         var games = new List<GameDetail>
