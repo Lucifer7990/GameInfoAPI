@@ -44,4 +44,36 @@ public class GameDetailsController(AppDbContext dbContext) : ControllerBase
 
         return Ok(new { message = "Dummy data inserted", count = games.Count });
     }
+
+
+    [HttpPost]
+    public async Task<ActionResult<GameDetail>> Create(GameDetailDTO dto)
+    {
+        if (!ModelState.IsValid)
+            return BadRequest(ModelState);
+
+        var gameDetail = new GameDetail
+        {
+            Title = dto.Title,
+            Description = dto.Description,
+            CoverImageUrl = dto.CoverImageUrl
+        };
+        dbContext.GameDetails.Add(gameDetail);
+        await dbContext.SaveChangesAsync();
+
+        return CreatedAtAction(nameof(GetById), new { id = gameDetail.Id }, gameDetail);
+
+    }
+
+
+    [HttpGet("id:int")]
+    public async Task<ActionResult<GameDetail>> GetById(int id)
+    {
+        var gameDetail = await dbContext.GameDetails.FindAsync(id);
+        if (gameDetail == null)
+            return NotFound();
+
+        return Ok(gameDetail);
+    }
+
 }
