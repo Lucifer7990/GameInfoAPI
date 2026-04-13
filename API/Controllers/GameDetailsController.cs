@@ -14,44 +14,19 @@ public class GameDetailsController(AppDbContext dbContext) : ControllerBase
         return result;
     }
 
-    [HttpGet("seed")]
-    public async Task<IActionResult> SeedGames()
+    [HttpGet("{id:int}")]
+    public async Task<ActionResult<GameDetail>> GetById(int id)
     {
-        var games = new List<GameDetail>
-        {
-            new GameDetail
-            {
-                Title = "The Witcher 3",
-                Description = "Open world RPG",
-                CoverImageUrl = "https://example.com/witcher3.jpg"
-            },
-            new GameDetail
-            {
-                Title = "Cyberpunk 2077",
-                Description = "Futuristic open world game",
-                CoverImageUrl = "https://example.com/cyberpunk.jpg"
-            },
-            new GameDetail
-            {
-                Title = "Red Dead Redemption 2",
-                Description = "Wild west story-driven game",
-                CoverImageUrl = "https://example.com/rdr2.jpg"
-            }
-        };
+        var gameDetail = await dbContext.GameDetails.FindAsync(id);
+        if (gameDetail == null)
+            return NotFound();
 
-        await dbContext.GameDetails.AddRangeAsync(games);
-        await dbContext.SaveChangesAsync();
-
-        return Ok(new { message = "Dummy data inserted", count = games.Count });
+        return Ok(gameDetail);
     }
-
 
     [HttpPost]
     public async Task<ActionResult<GameDetail>> Create(GameDetailDTO dto)
     {
-        if (!ModelState.IsValid)
-            return BadRequest(ModelState);
-
         var gameDetail = new GameDetail
         {
             Title = dto.Title,
@@ -62,18 +37,37 @@ public class GameDetailsController(AppDbContext dbContext) : ControllerBase
         await dbContext.SaveChangesAsync();
 
         return CreatedAtAction(nameof(GetById), new { id = gameDetail.Id }, gameDetail);
-
     }
 
 
-    [HttpGet("id:int")]
-    public async Task<ActionResult<GameDetail>> GetById(int id)
+    [HttpPut("{id:int}")]
+    public async Task<ActionResult<GameDetail>> Update(int id, GameDetailDTO dto)
+    {
+        var gameDetail = await dbContext.GameDetails.FindAsync(id);
+        if (gameDetail == null)
+            return NotFound();
+        else
+        {
+
+            gameDetail.Title = dto.Title;
+            gameDetail.Description = dto.Description;
+            gameDetail.CoverImageUrl = dto.CoverImageUrl;
+
+
+            await dbContext.SaveChangesAsync();
+            return Ok();
+        }
+    }
+
+    [HttpDelete("{id:int}")]
+    public async Task<IActionResult> DeleteBook(int id)
     {
         var gameDetail = await dbContext.GameDetails.FindAsync(id);
         if (gameDetail == null)
             return NotFound();
 
-        return Ok(gameDetail);
+        dbContext.GameDetails.Remove(gameDetail);
+        await dbContext.SaveChangesAsync();
+        return NoContent();
     }
-
 }
