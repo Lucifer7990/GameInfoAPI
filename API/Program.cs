@@ -1,4 +1,5 @@
 using DotNetEnv;
+using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.EntityFrameworkCore;
 using Scalar.AspNetCore;
 
@@ -17,12 +18,11 @@ builder.Services.AddOpenApi();
 var app = builder.Build();
 
 app.UseForwardedHeaders();
+app.UseHttpsRedirection();
+app.UseAuthorization();
 
 app.MapOpenApi();
 app.MapScalarApiReference();
-
-app.UseHttpsRedirection();
-app.UseAuthorization();
 
 app.MapControllers();
 
