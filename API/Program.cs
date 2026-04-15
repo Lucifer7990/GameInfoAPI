@@ -1,5 +1,4 @@
 using DotNetEnv;
-using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.EntityFrameworkCore;
 using Scalar.AspNetCore;
 
@@ -17,12 +16,18 @@ builder.Services.AddOpenApi();
 
 var app = builder.Build();
 
-app.UseForwardedHeaders();
+app.MapOpenApi();
+app.MapScalarApiReference(options =>
+{
+    var isProduction = app.Environment.IsProduction();
+
+    options.Servers = isProduction
+        ? new[] { new ScalarServer("https://gameinfoapi.onrender.com") }
+        : null; // Let Scalar auto-detect locally
+});
+
 app.UseHttpsRedirection();
 app.UseAuthorization();
-
-app.MapOpenApi();
-app.MapScalarApiReference();
 
 app.MapControllers();
 
