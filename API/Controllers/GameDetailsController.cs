@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -8,6 +9,7 @@ namespace API.Controllers;
 public class GameDetailsController(AppDbContext dbContext) : ControllerBase
 {
     [HttpGet]
+    [Authorize]
     public async Task<IEnumerable<GameDetail>> Get()
     {
         var result = await dbContext.GameDetails.ToListAsync();

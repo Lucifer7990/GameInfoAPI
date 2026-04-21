@@ -1,5 +1,8 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
 
@@ -7,7 +10,7 @@ namespace API.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-public class AuthController(AppDbContext dbContext) : ControllerBase
+public class AuthController(AppDbContext dbContext, IConfiguration _config) : ControllerBase
 {
     //POST : /api/auth/send-otp
     [HttpPost("send-otp")]
@@ -55,15 +58,44 @@ public class AuthController(AppDbContext dbContext) : ControllerBase
 
         if (user.OtpExpiryTime < DateTime.UtcNow) return Unauthorized();
 
-        if(user.CurrentOtp.ToUpper()==req.OtpHash.ToUpper())
+        if (user.CurrentOtp.ToUpper() == req.OtpHash.ToUpper())
         {
-            user.IsActive=true;
+            user.IsActive = true;
+
+            var Key = Environment.GetEnvironmentVariable("SECRATE_KEY") ?? "YourDhruvSecretLongKeyWithAtLeast32Chars";
+
+            Console.WriteLine(Key);
+            var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(Key));
+            var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
+
+            var claims = new[]
+            {
+                new Claim(ClaimTypes.NameIdentifier, req.Email),
+                new Claim(ClaimTypes.Role, "User")
+            };
+
+            var token = new JwtSecurityToken(
+                _config["Jwt:Issuer"],
+                _config["Jwt:Audience"],
+                claims,
+                expires: DateTime.Now.AddMinutes(60),
+                signingCredentials: credentials);
+
+            string tokenString = new JwtSecurityTokenHandler().WriteToken(token);
+            Response.Cookies.Append("authToken", tokenString, new CookieOptions
+            {
+                HttpOnly = true,                          // JS cannot access
+                Secure = false,                          // HTTPS only
+                SameSite = SameSiteMode.Lax,           // CSRF protection
+                Expires = DateTimeOffset.UtcNow.AddHours(1)
+            });
+
+
+
+            await dbContext.SaveChangesAsync();
+            return Ok(new { message = "Login successful" });
         }
         else
             return BadRequest();
-
-        await dbContext.SaveChangesAsync();
-
-        return Ok("OTP Varified successfully");
     }
 }
