@@ -5,6 +5,7 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
+using Utilities.Email;
 
 namespace API.Controllers;
 
@@ -14,7 +15,7 @@ public class AuthController(AppDbContext dbContext, IConfiguration _config) : Co
 {
     //POST : /api/auth/send-otp
     [HttpPost("send-otp")]
-    public async Task<ActionResult<User>> SendOTP(OtpSendRequest req)
+    public async Task<ActionResult> SendOTP(OtpSendRequest req)
     {
 
         var user = await dbContext.Users.FirstOrDefaultAsync(u => u.Email == req.Email);
@@ -42,8 +43,24 @@ public class AuthController(AppDbContext dbContext, IConfiguration _config) : Co
 
         await dbContext.SaveChangesAsync();
 
+        // 1. Set up the sender (do this once, e.g. in DI)
+        var emailSender = new OtpEmailSender(
+            smtpHost: "smtp.gmail.com",
+            smtpPort: 587,
+            username: "darjidhruv720@gmail.com",
+            password: "pxis ndnp hnen vcoe",
+            senderEmail:"darjidhruv720@gmail.com",
+            senderName: "MyApp Security"
+        );
 
-        return Ok(await dbContext.Users.ToListAsync());
+        // 2. Generate + send OTP
+        string otp = "123456";
+        await emailSender.SendOtpAsync(req.Email, otp, expiryMinutes: 10);
+
+        // 3. Store otp + expiry in your DB/cache for verification later
+
+
+        return Ok(new { Message = "OTP Send Successfully" });
     }
 
     //POST : /api/auth/verify-otp
