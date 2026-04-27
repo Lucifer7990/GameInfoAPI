@@ -4,6 +4,8 @@ using Scalar.AspNetCore;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
+using GameInfoAPI.API.Abstractions;
+using API.Services;
 
 Env.Load(); // loads .env file 
 var dbConnection = Environment.GetEnvironmentVariable("DB_CONNECTION");
@@ -12,6 +14,7 @@ var SecrateJWTKey = Environment.GetEnvironmentVariable("SECRATE_KEY") ?? "YourDh
 
 var builder = WebApplication.CreateBuilder(args);
 
+builder.Services.AddScoped<IAuthService,AuthService>();
 
 builder.Services.AddControllers();
 builder.Services.AddDbContext<AppDbContext>(options => options.UseNpgsql(dbConnection));
