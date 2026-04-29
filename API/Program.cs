@@ -6,15 +6,19 @@ using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using GameInfoAPI.API.Abstractions;
 using API.Services;
+using Utilities.EmailSender;
 
 Env.Load(); // loads .env file 
-var dbConnection = Environment.GetEnvironmentVariable("DB_CONNECTION");
-var SecrateJWTKey = Environment.GetEnvironmentVariable("SECRATE_KEY") ?? "YourDhruvSecretLongKeyWithAtLeast32Chars";
+var dbConnection = Environment.GetEnvironmentVariable("DB_CONNECTION") ?? throw new InvalidOperationException("DB_CONNECTION is Required");
+var SecrateJWTKey = Environment.GetEnvironmentVariable("SECRATE_KEY") ?? throw new InvalidOperationException("SECRATE_KEY is Required");
 
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddScoped<IAuthService,AuthService>();
+builder.Services.AddScoped<IMessageSender,EmailSender>();
+builder.Services.AddScoped<IOtpService,OtpService>();
+
 
 builder.Services.AddControllers();
 builder.Services.AddDbContext<AppDbContext>(options => options.UseNpgsql(dbConnection));

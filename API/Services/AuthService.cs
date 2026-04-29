@@ -5,11 +5,10 @@ using System.Text;
 using GameInfoAPI.API.Abstractions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
-using Utilities.Email;
 
 namespace API.Services;
 
-public class AuthService(AppDbContext dbContext, IConfiguration _config) : IAuthService
+public class AuthService(AppDbContext dbContext, IConfiguration _config, IMessageSender emailSender, IOtpService otp) : IAuthService
 {
     async Task<bool> IAuthService.SendOTP(string Email)
     {
@@ -24,38 +23,14 @@ public class AuthService(AppDbContext dbContext, IConfiguration _config) : IAuth
                 // await dbContext.SaveChangesAsync();
             }
 
+            string OTP = otp.Generate();
 
-            string OTP = "1234";
-            byte[] sourceBytes = Encoding.UTF8.GetBytes(OTP);
-
-            // Use the static 'HashData' method for a quick, one-line hash
-            byte[] hashBytes = SHA256.HashData(sourceBytes);
-
-            // Convert byte array to a readable Hex string
-            string hash = Convert.ToHexString(hashBytes);
-
-            user.CurrentOtp = hash;
-            user.OtpExpiryTime = DateTime.UtcNow.AddMinutes(5);
-
+            user.CurrentOtp = otp.Hash(OTP);
+            user.OtpExpiryTime = DateTime.UtcNow.AddMinutes(10);
 
             await dbContext.SaveChangesAsync();
 
-            // 1. Set up the sender (do this once, e.g. in DI)
-            var emailSender = new OtpEmailSender(
-                smtpHost: "smtp.gmail.com",
-                smtpPort: 587,
-                username: "darjidhruv720@gmail.com",
-                password: "pxis ndnp hnen vcoe",
-                senderEmail: "darjidhruv720@gmail.com",
-                senderName: "MyApp Security"
-            );
-
-            // 2. Generate + send OTP
-            string otp = "123456";
-            await emailSender.SendOtpAsync(Email, otp, expiryMinutes: 10);
-
-            // 3. Store otp + expiry in your DB/cache for verification later
-
+            await emailSender.SendOtpAsync(Email, OTP, expiryMinutes: 10);
 
             return true;
         }
@@ -79,9 +54,8 @@ public class AuthService(AppDbContext dbContext, IConfiguration _config) : IAuth
             {
                 user.IsActive = true;
 
-                var Key = Environment.GetEnvironmentVariable("SECRATE_KEY") ?? "YourDhruvSecretLongKeyWithAtLeast32Chars";
+                var Key = Environment.GetEnvironmentVariable("SECRATE_KEY") ?? throw new InvalidOperationException("SECRATE_KEY is Required");
 
-                Console.WriteLine(Key);
                 var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(Key));
                 var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
 

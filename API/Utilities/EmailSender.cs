@@ -4,74 +4,48 @@ using System.Net.Mail;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Utilities.Email
+namespace Utilities.EmailSender
 {
-    public class OtpEmailSender
+  public class EmailSender(IConfiguration configuration) : IMessageSender
+  {
+    private readonly string _smtpHost = configuration["Email:SmtpHost"] ?? throw new InvalidOperationException("Email:SmtpHost is Required");
+    private readonly int _smtpPort = int.Parse(configuration["Email:SmtpPort"] ??  throw new InvalidOperationException("Email:SmtpPort is Required"));
+    private readonly string _username = configuration["Email:Username"] ??  throw new InvalidOperationException("Email:Username is Required");
+    private readonly string _password = configuration["Email:Password"] ??  throw new InvalidOperationException("Email:Password is Required");
+    private readonly string _senderEmail = configuration["Email:SenderEmail"] ??  throw new InvalidOperationException("Email:SenderEmail is Required");
+    private readonly string _senderName = configuration["Email:SenderName"] ??  throw new InvalidOperationException("Email:SenderName is Required");
+
+
+    public async Task SendOtpAsync(string toEmail, string otp, int expiryMinutes = 10)
     {
-        private readonly string _smtpHost;
-        private readonly int _smtpPort;
-        private readonly string _username;
-        private readonly string _password;
-        private readonly string _senderEmail;
-        private readonly string _senderName;
+      using var mail = new MailMessage
+      {
+        From = new MailAddress(_senderEmail, _senderName, Encoding.UTF8),
+        Subject = "Your One-Time Password (OTP)",
+        Body = BuildHtmlTemplate(otp, expiryMinutes),
+        IsBodyHtml = true,
+        BodyEncoding = Encoding.UTF8,
+        SubjectEncoding = Encoding.UTF8
+      };
 
-        public OtpEmailSender(
-            string smtpHost,
-            int smtpPort,
-            string username,
-            string password,
-            string senderEmail,
-            string senderName = "Security Team")
-        {
-            _smtpHost    = smtpHost;
-            _smtpPort    = smtpPort;
-            _username    = username;
-            _password    = password;
-            _senderEmail = senderEmail;
-            _senderName  = senderName;
-        }
+      mail.To.Add(toEmail);
 
-        // ── Generate a random numeric OTP ──────────────────────────────────
-        public static string GenerateOtp(int digits = 6)
-        {
-            var rng = new Random();
-            int min = (int)Math.Pow(10, digits - 1);
-            int max = (int)Math.Pow(10, digits) - 1;
-            return rng.Next(min, max + 1).ToString();
-        }
+      using var client = new SmtpClient(_smtpHost, _smtpPort)
+      {
+        EnableSsl = true,
+        Credentials = new NetworkCredential(_username, _password),
+        Timeout = 30_000
+      };
 
-        // ── Send OTP mail ──────────────────────────────────────────────────
-        public async Task SendOtpAsync(string toEmail, string otp, int expiryMinutes = 10)
-        {
-            using var mail = new MailMessage
-            {
-                From           = new MailAddress(_senderEmail, _senderName, Encoding.UTF8),
-                Subject        = "Your One-Time Password (OTP)",
-                Body           = BuildHtmlTemplate(otp, expiryMinutes),
-                IsBodyHtml     = true,
-                BodyEncoding   = Encoding.UTF8,
-                SubjectEncoding = Encoding.UTF8
-            };
+      await client.SendMailAsync(mail);
+    }
 
-            mail.To.Add(toEmail);
-
-            using var client = new SmtpClient(_smtpHost, _smtpPort)
-            {
-                EnableSsl   = true,
-                Credentials = new NetworkCredential(_username, _password),
-                Timeout     = 30_000
-            };
-
-            await client.SendMailAsync(mail);
-        }
-
-        // ── HTML Template ──────────────────────────────────────────────────
-        private string BuildHtmlTemplate(string otp, int expiryMinutes)
-        {
-            // Split OTP into individual digits for the "box" style
-            string digitBoxes = "";
-            foreach (char c in otp)
-                digitBoxes += $@"
+    private string BuildHtmlTemplate(string otp, int expiryMinutes)
+    {
+      // Split OTP into individual digits for the "box" style
+      string digitBoxes = "";
+      foreach (char c in otp)
+        digitBoxes += $@"
                     <td style=""
                         width: 48px;
                         height: 56px;
@@ -87,7 +61,7 @@ namespace Utilities.Email
                     "">{c}</td>
                     <td style=""width:8px""></td>";
 
-            return $@"
+      return $@"
 <!DOCTYPE html>
 <html lang=""en"">
 <head>
@@ -203,6 +177,6 @@ namespace Utilities.Email
 
 </body>
 </html>";
-        }
     }
+  }
 }

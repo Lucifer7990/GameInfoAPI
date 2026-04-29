@@ -1,12 +1,6 @@
 using GameInfoAPI.API.Abstractions;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.IdentityModel.Tokens;
-using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims;
-using System.Security.Cryptography;
-using System.Text;
-using Utilities.Email;
+
 
 namespace API.Controllers;
 
@@ -24,7 +18,7 @@ public class AuthController(IAuthService auth) : ControllerBase
             return Ok(new { Message = "OTP Send Successfully" });
         }
 
-        return Problem(title:"Authentication Process Fail",detail:"Email validation and otp send process failed due to some reasons.");
+        return Problem(title: "Authentication Process Fail", detail: "Email validation and otp send process failed due to some reasons.");
     }
 
     //POST : /api/auth/verify-otp
@@ -33,20 +27,20 @@ public class AuthController(IAuthService auth) : ControllerBase
     public async Task<ActionResult<User>> VerifyOTP(OtpVerifyRequest req)
     {
         var token = await auth.VerifyOTP(req.Email, req.OtpHash);
-        if(token != null)
+        if (token != null)
         {
-                Response.Cookies.Append("authToken", token, new CookieOptions
-                {
-                    HttpOnly = true,                          // JS cannot access
-                    Secure = false,                          // HTTPS only
-                    SameSite = SameSiteMode.Lax,           // CSRF protection
-                    Expires = DateTimeOffset.UtcNow.AddHours(1)
-                });
-            
+            Response.Cookies.Append("authToken", token, new CookieOptions
+            {
+                HttpOnly = true,                          // JS cannot access
+                Secure = false,                          // HTTPS only
+                SameSite = SameSiteMode.Lax,           // CSRF protection
+                Expires = DateTimeOffset.UtcNow.AddHours(1)
+            });
+
             return Ok(new { Message = "Lodin success" });
         }
 
-        return Problem(title:"Authentication Process Fail",detail:"OTP Validation process failed or otp is invalid/expierd or User not found or ");
+        return Problem(title: "Authentication Process Fail", detail: "OTP Validation process failed or otp is invalid/expierd or User not found or ");
 
     }
 }
