@@ -9,35 +9,45 @@ namespace Utilities.EmailSender
   public class EmailSender(IConfiguration configuration) : IMessageSender
   {
     private readonly string _smtpHost = configuration["Email:SmtpHost"] ?? throw new InvalidOperationException("Email:SmtpHost is Required");
-    private readonly int _smtpPort = int.Parse(configuration["Email:SmtpPort"] ??  throw new InvalidOperationException("Email:SmtpPort is Required"));
-    private readonly string _username = configuration["Email:Username"] ??  throw new InvalidOperationException("Email:Username is Required");
-    private readonly string _password = configuration["Email:Password"] ??  throw new InvalidOperationException("Email:Password is Required");
-    private readonly string _senderEmail = configuration["Email:SenderEmail"] ??  throw new InvalidOperationException("Email:SenderEmail is Required");
-    private readonly string _senderName = configuration["Email:SenderName"] ??  throw new InvalidOperationException("Email:SenderName is Required");
+    private readonly int _smtpPort = int.Parse(configuration["Email:SmtpPort"] ?? throw new InvalidOperationException("Email:SmtpPort is Required"));
+    private readonly string _username = configuration["Email:Username"] ?? throw new InvalidOperationException("Email:Username is Required");
+    private readonly string _password = configuration["Email:Password"] ?? throw new InvalidOperationException("Email:Password is Required");
+    private readonly string _senderEmail = configuration["Email:SenderEmail"] ?? throw new InvalidOperationException("Email:SenderEmail is Required");
+    private readonly string _senderName = configuration["Email:SenderName"] ?? throw new InvalidOperationException("Email:SenderName is Required");
 
 
     public async Task SendOtpAsync(string toEmail, string otp, int expiryMinutes = 10)
     {
-      using var mail = new MailMessage
+      try
       {
-        From = new MailAddress(_senderEmail, _senderName, Encoding.UTF8),
-        Subject = "Your One-Time Password (OTP)",
-        Body = BuildHtmlTemplate(otp, expiryMinutes),
-        IsBodyHtml = true,
-        BodyEncoding = Encoding.UTF8,
-        SubjectEncoding = Encoding.UTF8
-      };
+        using var mail = new MailMessage
+        {
+          From = new MailAddress(_senderEmail, _senderName, Encoding.UTF8),
+          Subject = "Your One-Time Password (OTP)",
+          Body = BuildHtmlTemplate(otp, expiryMinutes),
+          IsBodyHtml = true,
+          BodyEncoding = Encoding.UTF8,
+          SubjectEncoding = Encoding.UTF8
+        };
 
-      mail.To.Add(toEmail);
+        mail.To.Add(toEmail);
 
-      using var client = new SmtpClient(_smtpHost, _smtpPort)
+        using var client = new SmtpClient(_smtpHost, _smtpPort)
+        {
+          EnableSsl = true,
+          Credentials = new NetworkCredential(_username, _password),
+          Timeout = 30_000
+        };
+
+        await client.SendMailAsync(mail);
+
+      }
+      catch(Exception er)
       {
-        EnableSsl = true,
-        Credentials = new NetworkCredential(_username, _password),
-        Timeout = 30_000
-      };
+        Console.WriteLine(er.Message);
+        throw;
+      }
 
-      await client.SendMailAsync(mail);
     }
 
     private string BuildHtmlTemplate(string otp, int expiryMinutes)
