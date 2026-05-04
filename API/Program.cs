@@ -18,6 +18,8 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddScoped<IAuthService,AuthService>();
 builder.Services.AddScoped<IMessageSender,EmailSender>();
 builder.Services.AddScoped<IOtpService,OtpService>();
+builder.Services.AddScoped<ITokenService,TokenService>();
+
 
 
 builder.Services.AddControllers();

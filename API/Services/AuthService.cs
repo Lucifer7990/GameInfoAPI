@@ -8,7 +8,7 @@ using Microsoft.IdentityModel.Tokens;
 
 namespace API.Services;
 
-public class AuthService(AppDbContext dbContext, IConfiguration _config, IMessageSender emailSender, IOtpService otp) : IAuthService
+public class AuthService(AppDbContext dbContext, IMessageSender emailSender, IOtpService otp,ITokenService token) : IAuthService
 {
     async Task<bool> IAuthService.SendOTP(string Email)
     {
@@ -52,27 +52,13 @@ public class AuthService(AppDbContext dbContext, IConfiguration _config, IMessag
 
             if (user.CurrentOtp.ToUpper() == OTP.ToUpper())
             {
+
+                var tokenString = token.GenerateJwt(email: Email, role: "User");
+
                 user.IsActive = true;
 
-                var Key = Environment.GetEnvironmentVariable("SECRATE_KEY") ?? throw new InvalidOperationException("SECRATE_KEY is Required");
-
-                var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(Key));
-                var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
-
-                var claims = new[]
-                {
-                new Claim(ClaimTypes.NameIdentifier, Email),
-                new Claim(ClaimTypes.Role, "User")
-            };
-
-                var token = new JwtSecurityToken(
-                    _config["Jwt:Issuer"],
-                    _config["Jwt:Audience"],
-                    claims,
-                    expires: DateTime.Now.AddMinutes(60),
-                    signingCredentials: credentials);
-
-                string tokenString = new JwtSecurityTokenHandler().WriteToken(token);
+                
+                
 
                 await dbContext.SaveChangesAsync();
                 return tokenString;

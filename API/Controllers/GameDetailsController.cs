@@ -9,7 +9,6 @@ namespace API.Controllers;
 public class GameDetailsController(AppDbContext dbContext) : ControllerBase
 {
     [HttpGet]
-    [Authorize]
     public async Task<IEnumerable<GameDetail>> Get()
     {
         var result = await dbContext.GameDetails.ToListAsync();
@@ -27,6 +26,7 @@ public class GameDetailsController(AppDbContext dbContext) : ControllerBase
     }
 
     [HttpPost]
+    [Authorize(Roles = "Admin")]
     public async Task<ActionResult<GameDetail>> Create(GameDetailDTO dto)
     {
         var gameDetail = new GameDetail
@@ -43,6 +43,7 @@ public class GameDetailsController(AppDbContext dbContext) : ControllerBase
 
 
     [HttpPut("{id:int}")]
+    [Authorize(Roles = "Admin")]
     public async Task<ActionResult<GameDetail>> Update(int id, GameDetailDTO dto)
     {
         var gameDetail = await dbContext.GameDetails.FindAsync(id);
@@ -62,7 +63,9 @@ public class GameDetailsController(AppDbContext dbContext) : ControllerBase
     }
 
     [HttpDelete("{id:int}")]
-    public async Task<IActionResult> DeleteBook(int id)
+    [Authorize(Roles = "Admin")]
+
+    public async Task<IActionResult> DeleteGame(int id)
     {
         var gameDetail = await dbContext.GameDetails.FindAsync(id);
         if (gameDetail == null)
