@@ -1,3 +1,4 @@
+using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -8,7 +9,22 @@ namespace API.Controllers;
 [Route("api/[controller]")]
 public class GameDetailsController(AppDbContext dbContext) : ControllerBase
 {
+
+    [HttpGet("userinfo")]
+    [Authorize(Roles = "User")]
+    public async Task<object> GetUserId()
+    {
+        var result = new {  nameid = User.FindFirstValue(ClaimTypes.NameIdentifier), 
+                            name = User.FindFirstValue(ClaimTypes.Name),
+                            email =  User.FindFirstValue(ClaimTypes.Email),
+                            Role =  User.FindFirstValue(ClaimTypes.Role),
+                            temp =  User.FindFirstValue(ClaimTypes.GivenName)
+                         };
+        return result;
+    }
+
     [HttpGet]
+    [Authorize(Roles = "User")]
     public async Task<IEnumerable<GameDetail>> Get()
     {
         var result = await dbContext.GameDetails.ToListAsync();

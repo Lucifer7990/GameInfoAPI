@@ -4,11 +4,11 @@ using System.Security.Cryptography;
 using System.Text;
 using Microsoft.IdentityModel.Tokens;
 
-public class TokenService(IConfiguration _config) : ITokenService
+public class TokenService : ITokenService
 {
     private readonly string Key = Environment.GetEnvironmentVariable("SECRATE_KEY") ?? throw new InvalidOperationException("SECRATE_KEY is Required");
 
-    public string GenerateJwt(string email, string role)
+    public string GenerateUserToken(string identity,string username,string email)
     {
 
         var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(Key));
@@ -16,14 +16,14 @@ public class TokenService(IConfiguration _config) : ITokenService
 
         var claims = new[]
         {
-            new Claim(ClaimTypes.NameIdentifier, email),
-            new Claim(ClaimTypes.Role, role)
+            new Claim(ClaimTypes.NameIdentifier, identity),
+            new Claim(ClaimTypes.Name, username),
+            new Claim(ClaimTypes.Email, email),
+            new Claim(ClaimTypes.Role, "User"),
         };
 
         var token = new JwtSecurityToken(
-            _config["Jwt:Issuer"],
-            _config["Jwt:Audience"],
-            claims,
+            claims: claims,
             expires: DateTime.Now.AddMinutes(60),
             signingCredentials: credentials);
 

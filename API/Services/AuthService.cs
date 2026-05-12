@@ -53,12 +53,9 @@ public class AuthService(AppDbContext dbContext, IMessageSender emailSender, IOt
             if (user.CurrentOtp.ToUpper() == OTP.ToUpper())
             {
 
-                var tokenString = token.GenerateJwt(email: Email, role: "User");
+                var tokenString = token.GenerateUserToken(email: Email,username : user.Username,identity: user.Id.ToString());
 
                 user.IsActive = true;
-
-                
-                
 
                 await dbContext.SaveChangesAsync();
                 return tokenString;

@@ -1,4 +1,4 @@
 public interface ITokenService
 {
-    string GenerateJwt(string email, string role);
+    string  GenerateUserToken(string identity,string username,string email);
 }
