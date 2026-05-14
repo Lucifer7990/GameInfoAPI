@@ -24,7 +24,6 @@ public class GameDetailsController(AppDbContext dbContext) : ControllerBase
     }
 
     [HttpGet]
-    [Authorize(Roles = "User")]
     public async Task<IEnumerable<GameDetail>> Get()
     {
         var result = await dbContext.GameDetails.ToListAsync();

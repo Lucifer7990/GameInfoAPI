@@ -3,44 +3,37 @@ using Microsoft.AspNetCore.Mvc;
 
 
 namespace API.Controllers;
-
 [ApiController]
 [Route("api/[controller]")]
 public class AuthController(IAuthService auth) : ControllerBase
 {
-    //POST : /api/auth/send-otp
     [HttpPost("send-otp")]
-    public async Task<ActionResult> SendOTP(OtpSendRequest req)
+    public async Task<ActionResult<AuthResponse>> SendOTP(OtpSendRequest req)
     {
+        var success = await auth.SendOTP(req.Email);
 
-        if (await auth.SendOTP(req.Email))
-        {
-            return Ok(new { Message = "OTP Send Successfully" });
-        }
+        if (!success)
+            return BadRequest("OTP sending failed");
 
-        return Problem(title: "Authentication Process Fail", detail: "Email validation and otp send process failed due to some reasons.");
+        return Ok(new AuthResponse("OTP sent successfully"));
     }
 
-    //POST : /api/auth/verify-otp
-
     [HttpPost("verify-otp")]
-    public async Task<ActionResult<User>> VerifyOTP(OtpVerifyRequest req)
+    public async Task<ActionResult<AuthResponse>> VerifyOTP(OtpVerifyRequest req)
     {
         var token = await auth.VerifyOTP(req.Email, req.OtpHash);
-        if (token != null)
+
+        if (token is null)
+            return Unauthorized("Invalid or expired OTP");
+
+        Response.Cookies.Append("authToken", token, new CookieOptions
         {
-            Response.Cookies.Append("authToken", token, new CookieOptions
-            {
-                HttpOnly = true,                          // JS cannot access
-                Secure = false,                          // HTTPS only
-                SameSite = SameSiteMode.Lax,           // CSRF protection
-                Expires = DateTimeOffset.UtcNow.AddHours(1)
-            });
+            HttpOnly = true,
+            Secure = true,
+            SameSite = SameSiteMode.Lax,
+            Expires = DateTimeOffset.UtcNow.AddHours(1)
+        });
 
-            return Ok(new { Message = "Lodin success" });
-        }
-
-        return Problem(title: "Authentication Process Fail", detail: "OTP Validation process failed or otp is invalid/expierd or User not found or ");
-
+        return Ok(new AuthResponse("Login successful"));
     }
 }
