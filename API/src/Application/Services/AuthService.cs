@@ -18,13 +18,14 @@ public class AuthService(AppDbContext dbContext, IMessageSender emailSender, IOt
             }
 
             string OTP = otp.Generate();
+            int expiryMinutes = 3600;
 
             user.CurrentOtp = otp.Hash(OTP);
-            user.OtpExpiryTime = DateTime.UtcNow.AddMinutes(10);
+            user.OtpExpiryTime = DateTime.UtcNow.AddMinutes(expiryMinutes);
 
             await dbContext.SaveChangesAsync();
 
-            await emailSender.SendOtpAsync(Email, OTP, expiryMinutes: 10);
+            await emailSender.SendOtpAsync(Email, OTP, expiryMinutes);
 
             return true;
         }

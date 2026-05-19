@@ -10,19 +10,6 @@ namespace Controllers;
 public class GameDetailsController(AppDbContext dbContext) : ControllerBase
 {
 
-    [HttpGet("userinfo")]
-    [Authorize(Roles = "User")]
-    public async Task<object> GetUserId()
-    {
-        var result = new {  nameid = User.FindFirstValue(ClaimTypes.NameIdentifier), 
-                            name = User.FindFirstValue(ClaimTypes.Name),
-                            email =  User.FindFirstValue(ClaimTypes.Email),
-                            Role =  User.FindFirstValue(ClaimTypes.Role),
-                            temp =  User.FindFirstValue(ClaimTypes.GivenName)
-                         };
-        return result;
-    }
-
     [HttpGet]
     public async Task<IEnumerable<GameDetail>> Get()
     {

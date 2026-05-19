@@ -18,5 +18,7 @@ public class User
     public DateTime OtpExpiryTime { get; set; }
 
     public bool IsActive { get; set; } = false;
+
+
 }
 

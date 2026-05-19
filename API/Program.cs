@@ -6,6 +6,7 @@ using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using Application.Services;
 using Infrastructure.Common;
+using Microsoft.AspNetCore.HttpOverrides;
 
 Env.Load(); // loads .env file 
 var dbConnection = Environment.GetEnvironmentVariable("DB_CONNECTION") ?? throw new InvalidOperationException("DB_CONNECTION is Required");
@@ -14,27 +15,20 @@ var SecrateJWTKey = Environment.GetEnvironmentVariable("SECRATE_KEY") ?? throw n
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddScoped<IAuthService,AuthService>();
-builder.Services.AddScoped<IMessageSender,EmailSender>();
-builder.Services.AddScoped<IOtpService,OtpService>();
-builder.Services.AddScoped<ITokenService,TokenService>();
+builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddScoped<IMessageSender, EmailSender>();
+builder.Services.AddScoped<IOtpService, OtpService>();
+builder.Services.AddScoped<ITokenService, TokenService>();
+builder.Services.AddScoped<IProfileService, ProfileService>();
 
 
-
+// AppDomain.CurrentDomain.GetAssemblies() tells AutoMapper to scan all layers/projects for mapping profiles
+builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 builder.Services.AddControllers();
 builder.Services.AddDbContext<AppDbContext>(options => options.UseNpgsql(dbConnection));
 builder.Services.AddOpenApi();
+builder.Services.AddHttpContextAccessor();
 
-// Add CORS configuration
-builder.Services.AddCors(options =>
-{
-    options.AddPolicy("AllowAllOrigins", policy =>
-    {
-        policy.AllowAnyOrigin()
-              .AllowAnyMethod()
-              .AllowAnyHeader();
-    });
-});
 
 // 1. Add Authentication Services
 builder.Services.AddAuthentication(options =>
@@ -67,13 +61,10 @@ builder.Services.AddAuthentication(options =>
     };
 });
 
-builder.Services.AddAuthentication();
+// builder.Services.AddAuthentication();
 
 
 var app = builder.Build();
-
-// CORS middleware must be early in the pipeline
-app.UseCors("AllowAllOrigins");
 
 app.MapOpenApi();
 app.MapScalarApiReference(options =>
@@ -81,12 +72,12 @@ app.MapScalarApiReference(options =>
     var isProduction = app.Environment.IsProduction();
 
     options.Servers = isProduction
-        ? new[] { new ScalarServer("https://gameinfoapi.onrender.com"),new ScalarServer("http://gameinfoapi.onrender.com") }
+        ? new[] { new ScalarServer("https://gameinfoapi.onrender.com"), new ScalarServer("http://gameinfoapi.onrender.com") }
         : null; // Let Scalar auto-detect locally
 });
 
 // 2. Enable Middleware (Order matters!)
-app.UseAuthentication(); 
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
