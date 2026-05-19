@@ -32,7 +32,6 @@ public class AuthController(IAuthService auth) : ControllerBase
             HttpOnly = true,
             Secure = true,
             SameSite = SameSiteMode.Lax,
-            Expires = DateTimeOffset.UtcNow.AddHours(1)
         });
 
         return Ok(new AuthResponse("Login successful"));

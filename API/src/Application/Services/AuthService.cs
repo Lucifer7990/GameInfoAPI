@@ -8,7 +8,7 @@ public class AuthService(AppDbContext dbContext, IMessageSender emailSender, IOt
     {
         try
         {
-            var user = await dbContext.Users.FirstOrDefaultAsync(u => u.Email == Email);
+            var user = await dbContext.Users.FirstOrDefaultAsync(u => u.Email == Email && u.IsActive == true);
 
             if (user is null)
             {
@@ -18,7 +18,7 @@ public class AuthService(AppDbContext dbContext, IMessageSender emailSender, IOt
             }
 
             string OTP = otp.Generate();
-            int expiryMinutes = 3600;
+            int expiryMinutes = 5;
 
             user.CurrentOtp = otp.Hash(OTP);
             user.OtpExpiryTime = DateTime.UtcNow.AddMinutes(expiryMinutes);
@@ -39,7 +39,7 @@ public class AuthService(AppDbContext dbContext, IMessageSender emailSender, IOt
     {
         try
         {
-            var user = await dbContext.Users.FirstOrDefaultAsync(u => u.Email == Email);
+            var user = await dbContext.Users.FirstOrDefaultAsync(u => u.Email == Email && u.IsActive == true);
 
             if (user is null) return null;
 
@@ -47,12 +47,7 @@ public class AuthService(AppDbContext dbContext, IMessageSender emailSender, IOt
 
             if (user.CurrentOtp.ToUpper() == OTP.ToUpper())
             {
-
-                var tokenString = token.GenerateUserToken(email: Email,username : user.Username,identity: user.Id.ToString());
-
-                user.IsActive = true;
-
-                await dbContext.SaveChangesAsync();
+                var tokenString = token.GenerateUserToken(email: Email,username : user.Username,identity: user.Id.ToString(),expires:3600);
                 return tokenString;
             }
             else

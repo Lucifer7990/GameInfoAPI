@@ -17,8 +17,7 @@ public class User
     public string CurrentOtp { get; set; } = string.Empty;
     public DateTime OtpExpiryTime { get; set; }
 
-    public bool IsActive { get; set; } = false;
-
+    public bool IsActive { get; set; } = true;
 
 }
 

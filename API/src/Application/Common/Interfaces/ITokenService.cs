@@ -1,4 +1,4 @@
 public interface ITokenService
 {
-    string  GenerateUserToken(string identity,string username,string email);
+    string  GenerateUserToken(string identity,string username,string email,int expires);
 }

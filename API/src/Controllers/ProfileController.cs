@@ -15,34 +15,34 @@ public class ProfileController(IProfileService profile) : ControllerBase
     [Authorize(Roles = "User")]
     public async Task<ProfileDetailsDto> GetProfile()
     {
-        return await profile.GetProfileDetails();
+        return await profile.GetProfileDetailAsync();
     }
 
-    [HttpPatch("me")]
+    [HttpPut("me")]
     [Authorize(Roles = "User")]
-    public async Task<object> UpdateProfile()
+    public async Task<IActionResult> UpdateProfile(UserUpdateDto userdto)
     {
-        var result = new {  nameid = User.FindFirstValue(ClaimTypes.NameIdentifier), 
-                            name = User.FindFirstValue(ClaimTypes.Name),
-                            email =  User.FindFirstValue(ClaimTypes.Email),
-                            Role =  User.FindFirstValue(ClaimTypes.Role),
-                            temp =  User.FindFirstValue(ClaimTypes.GivenName)
-                         };
-        return result;
+        await profile.UpdateUserAsync(userdto);
+        return NoContent();
     }
 
     [HttpDelete("me")]
     [Authorize(Roles = "User")]
     public async Task<object> DelateProfile()
     {
-        var result = new {  nameid = User.FindFirstValue(ClaimTypes.NameIdentifier), 
-                            name = User.FindFirstValue(ClaimTypes.Name),
-                            email =  User.FindFirstValue(ClaimTypes.Email),
-                            Role =  User.FindFirstValue(ClaimTypes.Role),
-                            temp =  User.FindFirstValue(ClaimTypes.GivenName)
-                         };
-        return result;
+        await profile.DeleteUserAsync();
+
+        Response.Cookies.Delete("AuthToken", new CookieOptions
+        {
+            HttpOnly = true,
+            Secure = true,
+            SameSite = SameSiteMode.Lax,
+            Expires = DateTimeOffset.UtcNow.AddDays(-1) // Set expiration to the past
+        });
+
+        return NoContent();
     }
-   
-   
+
+
 }
+

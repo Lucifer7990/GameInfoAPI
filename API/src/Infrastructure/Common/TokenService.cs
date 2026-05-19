@@ -7,7 +7,7 @@ public class TokenService : ITokenService
 {
     private readonly string Key = Environment.GetEnvironmentVariable("SECRATE_KEY") ?? throw new InvalidOperationException("SECRATE_KEY is Required");
 
-    public string GenerateUserToken(string identity,string username,string email)
+    public string GenerateUserToken(string identity,string username,string email,int expires)
     {
 
         var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(Key));
@@ -23,7 +23,7 @@ public class TokenService : ITokenService
 
         var token = new JwtSecurityToken(
             claims: claims,
-            expires: DateTime.Now.AddMinutes(60),
+            expires: DateTime.Now.AddMinutes(expires),
             signingCredentials: credentials);
 
         return new JwtSecurityTokenHandler().WriteToken(token);
