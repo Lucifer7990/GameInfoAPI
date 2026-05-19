@@ -2,7 +2,7 @@ using System.Net;
 using System.Net.Mail;
 using System.Text;
 
-namespace Utilities.EmailSender
+namespace Infrastructure.Common
 {
   public class EmailSender(IConfiguration configuration) : IMessageSender
   {

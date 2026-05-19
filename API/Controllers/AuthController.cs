@@ -1,8 +1,9 @@
-using GameInfoAPI.API.Abstractions;
+using Application.Services;
 using Microsoft.AspNetCore.Mvc;
 
 
-namespace API.Controllers;
+namespace Controllers;
+
 [ApiController]
 [Route("api/[controller]")]
 public class AuthController(IAuthService auth) : ControllerBase

@@ -1,6 +1,6 @@
-namespace GameInfoAPI.API.Abstractions
+namespace Application.Services
 {
-    public interface IAuthService
+    public interface IGameDetails
     {
         Task<bool> SendOTP(string Email);
         Task<string?> VerifyOTP(string Email,string OTP);

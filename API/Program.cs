@@ -4,9 +4,8 @@ using Scalar.AspNetCore;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
-using GameInfoAPI.API.Abstractions;
-using API.Services;
-using Utilities.EmailSender;
+using Application.Services;
+using Infrastructure.Common;
 
 Env.Load(); // loads .env file 
 var dbConnection = Environment.GetEnvironmentVariable("DB_CONNECTION") ?? throw new InvalidOperationException("DB_CONNECTION is Required");

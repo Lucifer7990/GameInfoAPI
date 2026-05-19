@@ -1,4 +1,3 @@
-using System.ComponentModel.DataAnnotations;
 
 public class User
 {
@@ -21,22 +20,3 @@ public class User
     public bool IsActive { get; set; } = false;
 }
 
-public class OtpSendRequest
-{
-    [Required]
-    [EmailAddress]
-    public string Email { get; set; } = string.Empty;
-
-}
-
-public class OtpVerifyRequest
-{
-    [Required]
-    [EmailAddress]
-    public string Email { get; set; } = string.Empty;
-
-    [Required]
-    public string OtpHash { get; set; } = string.Empty;
-
-
-}

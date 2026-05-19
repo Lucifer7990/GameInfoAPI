@@ -1,7 +1,6 @@
-using GameInfoAPI.API.Abstractions;
 using Microsoft.EntityFrameworkCore;
 
-namespace API.Services;
+namespace Application.Services;
 
 public class AuthService(AppDbContext dbContext, IMessageSender emailSender, IOtpService otp,ITokenService token) : IAuthService
 {
