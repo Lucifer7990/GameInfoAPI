@@ -28,21 +28,19 @@ public class ProfileController(IProfileService profile) : ControllerBase
 
     [HttpDelete("me")]
     [Authorize(Roles = "User")]
-    public async Task<object> DelateProfile()
+    public async Task<IActionResult> DelateProfile()
     {
         await profile.DeleteUserAsync();
 
-        Response.Cookies.Delete("AuthToken", new CookieOptions
+        Response.Cookies.Delete("authToken", new CookieOptions
         {
             HttpOnly = true,
             Secure = true,
             SameSite = SameSiteMode.Lax,
-            Expires = DateTimeOffset.UtcNow.AddDays(-1) // Set expiration to the past
         });
 
         return NoContent();
     }
-
 
 }
 
