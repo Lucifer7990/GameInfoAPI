@@ -7,7 +7,28 @@ public class TokenService : ITokenService
 {
     private readonly string Key = Environment.GetEnvironmentVariable("SECRATE_KEY") ?? throw new InvalidOperationException("SECRATE_KEY is Required");
 
-    public string GenerateUserToken(string identity,string username,string email,int expires)
+    public string GenerateAdminToken(string identity, string username, string email, int expiresMin)
+    {
+        var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(Key));
+        var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
+
+        var claims = new[]
+        {
+            new Claim(ClaimTypes.NameIdentifier, identity),
+            new Claim(ClaimTypes.Name, username),
+            new Claim(ClaimTypes.Email, email),
+            new Claim(ClaimTypes.Role, "Admin"),
+        };
+
+        var token = new JwtSecurityToken(
+            claims: claims,
+            expires: DateTime.Now.AddMinutes(expiresMin),
+            signingCredentials: credentials);
+
+        return new JwtSecurityTokenHandler().WriteToken(token);
+    }
+
+    public string GenerateUserToken(string identity,string username,string email,int expiresMin)
     {
 
         var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(Key));
@@ -23,7 +44,7 @@ public class TokenService : ITokenService
 
         var token = new JwtSecurityToken(
             claims: claims,
-            expires: DateTime.Now.AddMinutes(expires),
+            expires: DateTime.Now.AddMinutes(expiresMin),
             signingCredentials: credentials);
 
         return new JwtSecurityTokenHandler().WriteToken(token);

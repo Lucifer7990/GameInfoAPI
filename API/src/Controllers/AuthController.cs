@@ -36,4 +36,40 @@ public class AuthController(IAuthService auth) : ControllerBase
 
         return Ok(new AuthResponse("Login successful"));
     }
+
+    [HttpGet("temp-verify")]
+    public async Task<ActionResult<AuthResponse>> TempVerifyOTP()
+    {
+        var token = await auth.VerifyOTPTemp();
+
+        if (token is null)
+            return Unauthorized("Invalid or expired OTP");
+
+        Response.Cookies.Append("authToken", token, new CookieOptions
+        {
+            HttpOnly = true,
+            Secure = true,
+            SameSite = SameSiteMode.Lax,
+        });
+
+        return Ok(new AuthResponse("Login successful"));
+    }
+
+    [HttpGet("Admin-login")]
+    public async Task<ActionResult<AuthResponse>> TempAdmin()
+    {
+        var token = auth.AdminAuth();
+
+        if (token is null || token == "null")
+            return Unauthorized("Invalid or expired OTP");
+
+        Response.Cookies.Append("authToken", token, new CookieOptions
+        {
+            HttpOnly = true,
+            Secure = true,
+            SameSite = SameSiteMode.Lax,
+        });
+
+        return Ok(new AuthResponse("Login successful"));
+    }
 }

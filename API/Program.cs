@@ -44,6 +44,7 @@ builder.Services.AddAuthentication(options =>
         ValidateIssuerSigningKey = true,
         ValidateIssuer = false,
         ValidateAudience = false,
+        RoleClaimType = "http://schemas.microsoft.com/ws/2008/06/identity/claims/role",
         IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(SecrateJWTKey))
     };
     options.Events = new JwtBearerEvents
