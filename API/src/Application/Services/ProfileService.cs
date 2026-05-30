@@ -20,7 +20,7 @@ public class ProfileService(IHttpContextAccessor httpContextAccessor, AppDbConte
 
         if (user == null)
         {
-            throw new KeyNotFoundException($"Active user with ID {UserId} was not found.");
+            throw new KeyNotFoundException($"Active user was not found.");
         }
 
         user.IsActive = false;
@@ -41,7 +41,7 @@ public class ProfileService(IHttpContextAccessor httpContextAccessor, AppDbConte
 
         if (user == null)
         {
-            throw new KeyNotFoundException($"Active user with ID {UserId} was not found.");
+            throw new KeyNotFoundException($"Active user was not found.");
         }
 
         return mapper.Map<ProfileDetailsDto>(user);
@@ -61,7 +61,7 @@ public class ProfileService(IHttpContextAccessor httpContextAccessor, AppDbConte
 
         if (user == null)
         {
-            throw new KeyNotFoundException($"Active user with ID {UserId} was not found.");
+            throw new KeyNotFoundException($"Active user was not found.");
         }
 
         mapper.Map(userDto, user);

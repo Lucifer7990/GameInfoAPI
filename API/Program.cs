@@ -20,10 +20,11 @@ builder.Services.AddScoped<IMessageSender, EmailSender>();
 builder.Services.AddScoped<IOtpService, OtpService>();
 builder.Services.AddScoped<ITokenService, TokenService>();
 builder.Services.AddScoped<IProfileService, ProfileService>();
+builder.Services.AddScoped<IGameService, GameService>();
 
 
 // AppDomain.CurrentDomain.GetAssemblies() tells AutoMapper to scan all layers/projects for mapping profiles
-builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
+builder.Services.AddAutoMapper(cfg => { }, typeof(Program));
 builder.Services.AddControllers();
 builder.Services.AddDbContext<AppDbContext>(options => options.UseNpgsql(dbConnection));
 builder.Services.AddOpenApi();

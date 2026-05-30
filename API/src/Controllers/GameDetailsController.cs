@@ -1,46 +1,38 @@
-using System.Security.Claims;
+using Application.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 
 namespace Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-public class GameDetailsController(AppDbContext dbContext) : ControllerBase
+public class GameDetailsController(IGameService gameService) : ControllerBase
 {
 
     [HttpGet]
     public async Task<IEnumerable<GameDetail>> Get()
     {
-        var result = await dbContext.GameDetails.ToListAsync();
-        return result;
+        return await gameService.getGameDetails();
     }
 
     [HttpGet("{id:int}")]
     public async Task<ActionResult<GameDetail>> GetById(int id)
     {
-        var gameDetail = await dbContext.GameDetails.FindAsync(id);
-        if (gameDetail == null)
-            return NotFound();
+        var game = await gameService.getGameDetailsById(id);
+        if (game is null) return NotFound();
 
-        return Ok(gameDetail);
+        return Ok(game);
     }
 
     [HttpPost]
     [Authorize(Roles = "Admin")]
     public async Task<ActionResult<GameDetail>> Create(GameDetailDTO dto)
     {
-        var gameDetail = new GameDetail
+        if (await gameService.CreateGame(dto))
         {
-            Title = dto.Title,
-            Description = dto.Description,
-            CoverImageUrl = dto.CoverImageUrl
-        };
-        dbContext.GameDetails.Add(gameDetail);
-        await dbContext.SaveChangesAsync();
-
-        return CreatedAtAction(nameof(GetById), new { id = gameDetail.Id }, gameDetail);
+            return Created();
+        }
+        return Problem("Data not created");
     }
 
 
@@ -48,33 +40,21 @@ public class GameDetailsController(AppDbContext dbContext) : ControllerBase
     [Authorize(Roles = "Admin")]
     public async Task<ActionResult<GameDetail>> Update(int id, GameDetailDTO dto)
     {
-        var gameDetail = await dbContext.GameDetails.FindAsync(id);
-        if (gameDetail == null)
-            return NotFound();
-        else
+        if (await gameService.UpdateGame(id,dto))
         {
-
-            gameDetail.Title = dto.Title;
-            gameDetail.Description = dto.Description;
-            gameDetail.CoverImageUrl = dto.CoverImageUrl;
-
-
-            await dbContext.SaveChangesAsync();
             return Ok();
         }
+        return Problem("Data not updated");
     }
 
     [HttpDelete("{id:int}")]
     [Authorize(Roles = "Admin")]
-
     public async Task<IActionResult> DeleteGame(int id)
     {
-        var gameDetail = await dbContext.GameDetails.FindAsync(id);
-        if (gameDetail == null)
-            return NotFound();
-
-        dbContext.GameDetails.Remove(gameDetail);
-        await dbContext.SaveChangesAsync();
-        return NoContent();
+        if (await gameService.DeleteGame(id))
+        {
+            return Ok();
+        }
+        return Problem("No data deleted");
     }
 }

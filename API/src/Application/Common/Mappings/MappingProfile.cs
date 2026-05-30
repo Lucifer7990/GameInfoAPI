@@ -12,6 +12,9 @@ namespace Application.Common.Mappings
             // Map from DTO to Entity (For creating/saving data)
             CreateMap<ProfileDetailsDto, User>();
             CreateMap<UserUpdateDto, User>();
+
+            CreateMap<GameDetail, GameDetailDTO>();
+            CreateMap<GameDetailDTO, GameDetail>();
             
 
         }
