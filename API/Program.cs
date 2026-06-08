@@ -8,7 +8,15 @@ using Application.Services;
 using Infrastructure.Common;
 using Microsoft.AspNetCore.HttpOverrides;
 
-Env.Load(); // loads .env file 
+
+if (Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") == "Production")
+{
+    Env.Load("/etc/secrets/.env");
+}
+else
+{
+    Env.Load();
+}
 var dbConnection = Environment.GetEnvironmentVariable("DB_CONNECTION") ?? throw new InvalidOperationException("DB_CONNECTION is Required");
 var SecrateJWTKey = Environment.GetEnvironmentVariable("SECRATE_KEY") ?? throw new InvalidOperationException("SECRATE_KEY is Required");
 
