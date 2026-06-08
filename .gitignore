@@ -22,6 +22,7 @@
 ## --- User Secrets & Sensitive Info ---
 # VERY IMPORTANT: This keeps your JWT keys and DB strings safe
 secrets.json
+global.json
 .env
 *.env.local
 [Aa]ppsettings.Development.json
