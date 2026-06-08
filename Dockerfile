@@ -2,8 +2,18 @@
 FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
 WORKDIR /app
 
+# Copy only project files first
+COPY ["TestAPI.sln", "."]
+COPY ["API/API.csproj", "API/"]
+COPY ["global.json", "."]
+
+# Restore packages
+RUN dotnet restore TestAPI.sln
+
+# Copy everything else
 COPY . .
-RUN dotnet restore
+
+# Publish
 RUN dotnet publish -c Release -o out
 
 # Runtime stage
